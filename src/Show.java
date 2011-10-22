@@ -213,18 +213,7 @@ public class Show extends JApplet implements  Runnable ,MouseListener, KeyListen
 
 			drawhand(g, player3, cardwidth, cardheight, 400, 300);
 			
-			
-			g.setColor(Color.BLACK);
-			g.fillRect(600,20 ,getWidth(),getHeight());
-			g.setColor(Color.RED);
-			g.setFont(font1);
-			g.drawString("SCORE!!!!!!!!", 600, 50);
-			
-		  	
 
-		   for(int i=0;i<TopTen.topTen.length;i++){
-				  g.drawString(""+TopTen.topTen[i].winnings+"", 600, 100+(60*i));
-		  	   }
 			
 	}
 	private void drawhand(Graphics g,Player player,int cardwidth,int cardheight,int startposX,int startposY){
