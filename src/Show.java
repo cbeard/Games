@@ -84,12 +84,12 @@ public class Show extends JApplet implements  Runnable ,MouseListener, KeyListen
         menu.add(savescore);
 		
         newHand = new JButton("New Hand"); 
-		newHand.setSize(40, 20);
+		//newHand.setSize(40, 20);
 		newHand.addMouseListener(this);
 		menu.add(newHand);
 		
 	    draw = new JButton("draw"); 
-		draw.setSize(40, 20);
+		//draw.setSize(40, 20);
 		draw.addMouseListener(this);
 		menu.add(draw);
 		
@@ -123,6 +123,9 @@ public class Show extends JApplet implements  Runnable ,MouseListener, KeyListen
 		bet.setFont(font2);
 		menu.add(bet);
 		
+	    JButton placebet = new JButton("Place Bet"); 
+		placebet.addMouseListener(this);
+		menu.add(placebet);
 		
 		setJMenuBar(menu);	
 		
@@ -213,7 +216,18 @@ public class Show extends JApplet implements  Runnable ,MouseListener, KeyListen
 
 			drawhand(g, player3, cardwidth, cardheight, 400, 300);
 			
+			
+			g.setColor(Color.BLACK);
+			g.fillRect(600,40 ,getWidth(),getHeight());
+			g.setColor(Color.RED);
+			g.setFont(font2);
+			g.drawString("Top TEN!", 600, 50);
+			
+		  	
 
+		   for(int i=0;i<TopTen.topTen.length;i++){
+				  g.drawString(""+(i+1)+") "+TopTen.topTen[i].winnings+"", 600, 100+(30*i));
+		  	   }
 			
 	}
 	private void drawhand(Graphics g,Player player,int cardwidth,int cardheight,int startposX,int startposY){
