@@ -5,26 +5,36 @@ import java.awt.*;
 import java.awt.event.*;
 
 
-public class Show extends JApplet implements  Runnable ,MouseListener{
+public class Show extends JApplet implements  Runnable ,MouseListener, KeyListener{
 
 	private Thread t; 
-	private Dimension size = new Dimension(600,400);
+	private Dimension size = new Dimension(900,400);
 	private Font font1;
 	private Font font2;
 	
 	private  Image img;
 	
+	Dealer dealer;
 	Player player1;
-	Hand playHand1;
-	Hand playHand2;
-	Hand playHand3;
+	Player player2;
+	Player player3;
+	
+
+
 	Hand playHand4;
 	
-	Dealer dealer;
+	public TopTen score;
 	
+	
+	
+	
+	
+	JMenuBar menu = new JMenuBar();
+	JButton savescore;
 	JButton newHand;
 	JButton draw;
 	JButton button[];
+	JTextArea bet;
 	
 	boolean isdraw = false;
 	boolean go = false;
@@ -33,20 +43,29 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 	
 	String winvalue="50";
 	String jackpotvalue="0";
+	String wager = "0";
 	
 	
 	public void init(){
 		
 		setSize(size);		
 		addMouseListener(this);		
+		addKeyListener(this);
 		setName("Poker");
-		setLayout(new FlowLayout(3));
+	 
+	
+		score = new TopTen();
+		
+		
 
-		
-		Image image = Toolkit.getDefaultToolkit().getImage("images/log.gif");
-
-		
-		
+     
+		dealer = new Dealer();				 
+		dealer.shuffle();
+	 	
+        player1 = new Player(new Hand(dealer.dealHand(5)), 10000000);
+        player2 = new Player(new Hand(dealer.dealHand(5)), 10000000);
+        player3 = new Player(new Hand(dealer.dealHand(5)), 10000000);
+		playHand4= new Hand(dealer.dealHand(5));
 		 t = new Thread(this);
 		 t.start();
 		
@@ -59,8 +78,10 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 	}
 	
 	public void buttons(){
-		JMenuBar menu = new JMenuBar();
-        menu.add(new JButton("file"));
+		
+		savescore = new JButton("SaveScore");
+		savescore.addMouseListener(this);
+        menu.add(savescore);
 		
         newHand = new JButton("New Hand"); 
 		newHand.setSize(40, 20);
@@ -94,66 +115,37 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 		jackpot.setEditable(false);
 		menu.add(jackpot);
 		
-		setJMenuBar(menu);
+		menu.add(new JLabel("BET :"));
+		
+	    bet = new JTextArea(wager);
+		bet.setEditable(false);
+		bet.addKeyListener(this);
+		bet.setFont(font2);
+		menu.add(bet);
+		
+		
+		setJMenuBar(menu);	
+		
+	
 	}
 
 
-	public void run(){
-		
+	public void run(){		
 	
-		
-		
-		dealer = new Dealer();
-		
-		
-		//for(int i = 0; i<dealer.getDeck().length;i++){System.out.println(dealer.cardToString(i));}
-		//dealer.shuffle();
-		//System.out.println("-------------------------  \n");
-		//for(int i = 0; i<dealer.getDeck().length;i++){System.out.println(dealer.cardToString(i));}
-		//Hand playHand =new Hand(dealer.dealHand(5));
-        //playHand.printHand();
-		//System.out.println("-------------------------  \n");
-		//for(int i = 0; i<dealer.getDeck().length;i++){System.out.println(dealer.cardToString(i));}
-		//dealer.getNewDeck();
-		//System.out.println("-------------------------  \n");
-		//	for(int i = 0; i<dealer.getDeck().length;i++){System.out.println(dealer.cardToString(i)); }
-				 
-		dealer.shuffle();
-		
-		System.out.println("-------------------------  \n");
-		
-			System.out.println(dealer.deckListToString());
-			
-		//Card[] testHand = { new Card(3,'c'),new Card(3,'s'),new Card(3,'c'),new Card(8,'h'),new Card(3,'c')};
-	    //Hand hand = new Hand(testHand);
-		//hand.printInfo();
-			
-		//System.out.println("\n-------------------------  \n");
-        playHand1 =new Hand(dealer.dealHand(5));
-        //playHand1.printInfo();
-        System.out.println("\n-------------------------  \n");
-	    playHand2 =new Hand(dealer.dealHand(5));
-	    //playHand2.printInfo();
-	    //System.out.println("\n-------------------------  \n");
-	    playHand3 =new Hand(dealer.dealHand(5));
-	    //playHand3.printInfo();
-	    //System.out.println("\n-------------------------  \n");
-	    playHand4 =new Hand(dealer.dealHand(5));
-	    //playHand4.printInfo();
-	    //System.out.println("\n-------------------------  \n");
-  
-		System.out.println(dealer.deckListToString());
-       player1 = new Player(playHand1, 10000000);
+	        
+		 System.out.println(TopTen.topTen[0].winnings);
+
       while(true){
     	    
 			if(counter>=2){ draw.show(false);  }
-			else{ draw.show(true);}
+			
 			
 		try{ t.sleep(40); }
 		catch(Exception e){} //do nothing
 		
 		 setSize(size);
 		 repaint();
+		 menu.repaint();
 		 requestFocus();
          
       }
@@ -183,8 +175,8 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 		   if(handname.getFaceValue(i)==14){g.drawString("A"+handname.getSuitType(i), startposX+(cardwidth*i), startposY );}
 		   else{ g.drawString(handname.cardToString(i), startposX+(cardwidth*i), startposY);}
 		  
-		   
-		   if(!isdraw){
+		  
+		   if(!isdraw||!draw.isShowing()){
 			   img =  getImage(getCodeBase(), "../images/"+handname.cardToStringReverse(i)+".gif");
 			   g.drawImage(img, startposX+(cardwidth*i), startposY , cardwidth,cardheight, this); 
 			   for(int j =0; j<button.length;j++){
@@ -215,12 +207,45 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 
 	 
 
-			drawhand(g, player1.getHand(), cardwidth, cardheight, 10, 300);
+			drawhand(g, player1, cardwidth, cardheight, 10, 300);
 
-			drawhand(g, playHand2, cardwidth, cardheight, 200, 300);
+			drawhand(g, player2, cardwidth, cardheight, 200, 300);
 
-			drawhand(g, playHand3, cardwidth, cardheight, 400, 300);
+			drawhand(g, player3, cardwidth, cardheight, 400, 300);
 			
+			
+			g.setColor(Color.BLACK);
+			g.fillRect(600,20 ,getWidth(),getHeight());
+			g.setColor(Color.RED);
+			g.setFont(font1);
+			g.drawString("SCORE!!!!!!!!", 600, 50);
+			
+		  	
+
+		   for(int i=0;i<TopTen.topTen.length;i++){
+				  g.drawString(""+TopTen.topTen[i].winnings+"", 600, 100+(60*i));
+		  	   }
+			
+	}
+	private void drawhand(Graphics g,Player player,int cardwidth,int cardheight,int startposX,int startposY){
+		Hand handname = player.getHand();
+		for(int i=0;i<handname.getHandLength();i++){
+			
+			   img =  getImage(getCodeBase(), "../images/"+handname.cardToStringReverse(i)+".gif");
+			   
+			   if(handname.getFaceValue(i)==11){g.drawString("J"+handname.getSuitType(i), startposX+(cardwidth*i), startposY);} else
+			   if(handname.getFaceValue(i)==12){g.drawString("Q"+handname.getSuitType(i), startposX+(cardwidth*i), startposY);} else
+			   if(handname.getFaceValue(i)==13){g.drawString("K"+handname.getSuitType(i), startposX+(cardwidth*i), startposY);} else
+			   if(handname.getFaceValue(i)==14){g.drawString("A"+handname.getSuitType(i), startposX+(cardwidth*i), startposY);}
+			   else{ g.drawString(handname.cardToString(i), startposX+(cardwidth*i), startposY);}
+			  
+			  
+			     g.drawImage(img, startposX+(cardwidth*i), startposY, cardwidth,cardheight, this);
+			 
+			}
+			
+			 g.drawString(handname.toStringHand(),startposX , startposY+cardheight+20);
+		
 	}
 	
 	private void drawhand(Graphics g,Hand handname,int cardwidth,int cardheight,int startposX,int startposY){
@@ -247,14 +272,21 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 
 	public void mouseClicked(MouseEvent arg0) {
 		Graphics g = this.getGraphics();
-		
+		if (arg0.getSource()== savescore){
+			score.setScore(player1);
+			
+		}
 		if(arg0.getSource()== newHand){
+			    isdraw = false;
 			    counter=0;
+			    wager="0";
+			    bet.setText(wager);
+			    draw.show(true);
 				dealer.getNewDeck();
 				dealer.shuffle();
 				player1.setHand(new Hand(dealer.dealHand(5)));				
-				playHand2 =new Hand(dealer.dealHand(5));				
-				playHand3 =new Hand(dealer.dealHand(5));				
+				player2.setHand(new Hand(dealer.dealHand(5)));
+				player3.setHand(new Hand(dealer.dealHand(5)));
 				playHand4 =new Hand(dealer.dealHand(5));				
 				this.paint(g);
 				g.clearRect(0, 0, getWidth(), getHeight());
@@ -263,8 +295,8 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 			
 			if(counter == 0){
 			  player1.setHand(dealer.drawOption(player1.getHand()));				
-			  playHand2 = dealer.drawOption(playHand2);				
-			  playHand3 = dealer.drawOption(playHand3);
+			  player2.setHand(dealer.drawOption(player2.getHand()));				
+			  player3.setHand(dealer.drawOption(player3.getHand()));				
 			}
 			for(int i=0;i<button.length;i++){
 				  if(button[i].isSelected()){
@@ -314,17 +346,30 @@ public class Show extends JApplet implements  Runnable ,MouseListener{
 	}
 
 
-	public void mouseReleased(MouseEvent arg0) {
-		
+	public void mouseReleased(MouseEvent arg0) {}//do nothing
 
-		if(arg0.getSource()== draw){
-			//isdraw = true;
 	
-			
-		}
+	public void keyPressed(KeyEvent arg0) {
 		
+		if(arg0.getKeyChar()== '0'){ wager+=0;}
 
+		if(arg0.getKeyChar()== '1'){ if(wager=="0"){wager = "1";}else{wager+=1;}}
+		if(arg0.getKeyChar()== '2'){ if(wager=="0"){wager = "2";}else{wager+=2;}}
+		if(arg0.getKeyChar()== '3'){ if(wager=="0"){wager = "3";}else{wager+=3;}}
+		if(arg0.getKeyChar()== '4'){ if(wager=="0"){wager = "4";}else{wager+=4;}}
+		if(arg0.getKeyChar()== '5'){ if(wager=="0"){wager = "5";}else{wager+=5;}}
+		if(arg0.getKeyChar()== '6'){ if(wager=="0"){wager = "6";}else{wager+=6;}}
+		if(arg0.getKeyChar()== '7'){ if(wager=="0"){wager = "7";}else{wager+=7;}}
+		if(arg0.getKeyChar()== '8'){ if(wager=="0"){wager = "8";}else{wager+=8;}}
+		if(arg0.getKeyChar()== '9'){ if(wager=="0"){wager = "9";}else{wager+=9;}}
+
+		bet.setText(wager);
 	}
+
+	public void keyReleased(KeyEvent arg0) {}//do nothing
+
+
+	public void keyTyped(KeyEvent arg0) {}//do nothing
 	
 	
 	
